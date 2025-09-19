@@ -1,3 +1,4 @@
+// src/pages/Index.tsx
 import { useState, useEffect } from "react";
 import { ProctorDashboard } from "@/components/ProctorDashboard";
 import { ExtensionDetector } from "@/components/ExtensionDetector";
@@ -137,12 +138,14 @@ const Index = () => {
             <VideoMonitor
               onAttentionScoreChange={setAttentionScore}
               onVideoStatusChange={setIsVideoActive}
+              isMonitoring={isMonitoring}
             />
 
             {/* Audio Monitor */}
             <AudioMonitor
               onAudioLevelChange={setAudioLevel}
               onAudioStatusChange={setIsAudioActive}
+              isMonitoring={isMonitoring}
             />
           </div>
 

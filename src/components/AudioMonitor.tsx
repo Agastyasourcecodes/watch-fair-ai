@@ -1,3 +1,4 @@
+// src/components/AudioMonitor.tsx
 import { useState, useEffect, useRef } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -17,9 +18,10 @@ interface AudioEvent {
 interface AudioMonitorProps {
   onAudioLevelChange: (level: number) => void;
   onAudioStatusChange: (isActive: boolean) => void;
+  isMonitoring: boolean; // Add this prop
 }
 
-export function AudioMonitor({ onAudioLevelChange, onAudioStatusChange }: AudioMonitorProps) {
+export function AudioMonitor({ onAudioLevelChange, onAudioStatusChange, isMonitoring }: AudioMonitorProps) {
   const [isRecording, setIsRecording] = useState(false);
   const [audioLevel, setAudioLevel] = useState(0);
   const [events, setEvents] = useState<AudioEvent[]>([]);
@@ -32,7 +34,7 @@ export function AudioMonitor({ onAudioLevelChange, onAudioStatusChange }: AudioM
 
   const startRecording = async () => {
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ 
+      const stream = await navigator.mediaDevices.getUserMedia({
         audio: {
           echoCancellation: true,
           noiseSuppression: true,
@@ -196,6 +198,19 @@ export function AudioMonitor({ onAudioLevelChange, onAudioStatusChange }: AudioM
     return 'monitor-good';
   };
 
+  // Use this new useEffect hook to control monitoring based on the prop
+  useEffect(() => {
+    if (isMonitoring) {
+      startRecording();
+    } else {
+      stopRecording();
+    }
+    // Cleanup function to stop recording when component unmounts or prop changes to false
+    return () => {
+      stopRecording();
+    };
+  }, [isMonitoring]);
+
   useEffect(() => {
     return () => {
       stopRecording();
@@ -214,6 +229,7 @@ export function AudioMonitor({ onAudioLevelChange, onAudioStatusChange }: AudioM
             variant={isRecording ? "destructive" : "default"}
             size="sm"
             onClick={isRecording ? stopRecording : startRecording}
+            disabled={isMonitoring} // Disable the individual button when overall monitoring is active
           >
             {isRecording ? (
               <>
@@ -299,7 +315,7 @@ export function AudioMonitor({ onAudioLevelChange, onAudioStatusChange }: AudioM
                     )}
                   >
                     <div className="flex items-center justify-between mb-1">
-                      <Badge 
+                      <Badge
                         variant="outline"
                         className={cn(
                           "text-xs border-current",

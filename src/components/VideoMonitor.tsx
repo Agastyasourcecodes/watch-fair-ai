@@ -1,3 +1,4 @@
+// src/components/VideoMonitor.tsx
 import { useState, useEffect, useRef } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -8,9 +9,10 @@ import { cn } from "@/lib/utils";
 interface VideoMonitorProps {
   onAttentionScoreChange: (score: number) => void;
   onVideoStatusChange: (isActive: boolean) => void;
+  isMonitoring: boolean; // Add this prop
 }
 
-export function VideoMonitor({ onAttentionScoreChange, onVideoStatusChange }: VideoMonitorProps) {
+export function VideoMonitor({ onAttentionScoreChange, onVideoStatusChange, isMonitoring }: VideoMonitorProps) {
   const [isVideoActive, setIsVideoActive] = useState(false);
   const [attentionScore, setAttentionScore] = useState(0);
   const [faceDetected, setFaceDetected] = useState(false);
@@ -21,22 +23,22 @@ export function VideoMonitor({ onAttentionScoreChange, onVideoStatusChange }: Vi
 
   const startVideo = async () => {
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ 
-        video: { 
-          width: 640, 
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: {
+          width: 640,
           height: 480,
           facingMode: 'user'
-        } 
+        }
       });
-      
+
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
         streamRef.current = stream;
       }
-      
+
       setIsVideoActive(true);
       onVideoStatusChange(true);
-      
+
       // Start monitoring simulation
       startFaceDetection();
     } catch (error) {
@@ -50,11 +52,11 @@ export function VideoMonitor({ onAttentionScoreChange, onVideoStatusChange }: Vi
       streamRef.current.getTracks().forEach(track => track.stop());
       streamRef.current = null;
     }
-    
+
     if (videoRef.current) {
       videoRef.current.srcObject = null;
     }
-    
+
     setIsVideoActive(false);
     onVideoStatusChange(false);
     setFaceDetected(false);
@@ -100,7 +102,7 @@ export function VideoMonitor({ onAttentionScoreChange, onVideoStatusChange }: Vi
       if (Math.random() > 0.95) { // 5% chance of detecting multiple faces
         addViolation('Multiple faces detected');
       }
-      
+
       if (Math.random() > 0.98) { // 2% chance of detecting suspicious movement
         addViolation('Suspicious movement detected');
       }
@@ -124,11 +126,18 @@ export function VideoMonitor({ onAttentionScoreChange, onVideoStatusChange }: Vi
 
   const attentionStatus = getAttentionStatus();
 
+  // Use this new useEffect hook to control monitoring based on the prop
   useEffect(() => {
+    if (isMonitoring) {
+      startVideo();
+    } else {
+      stopVideo();
+    }
+    // Cleanup function to stop video when component unmounts or prop changes to false
     return () => {
       stopVideo();
     };
-  }, []);
+  }, [isMonitoring]);
 
   return (
     <Card className="h-full bg-card shadow-card">
@@ -142,6 +151,7 @@ export function VideoMonitor({ onAttentionScoreChange, onVideoStatusChange }: Vi
             variant={isVideoActive ? "destructive" : "default"}
             size="sm"
             onClick={isVideoActive ? stopVideo : startVideo}
+            disabled={isMonitoring} // Disable the individual button when overall monitoring is active
           >
             {isVideoActive ? (
               <>
@@ -171,7 +181,7 @@ export function VideoMonitor({ onAttentionScoreChange, onVideoStatusChange }: Vi
               !isVideoActive && "hidden"
             )}
           />
-          
+
           {!isVideoActive && (
             <div className="w-full h-48 bg-secondary rounded-lg flex items-center justify-center">
               <div className="text-center text-muted-foreground">
@@ -184,7 +194,7 @@ export function VideoMonitor({ onAttentionScoreChange, onVideoStatusChange }: Vi
           {/* Status Overlay */}
           {isVideoActive && (
             <div className="absolute top-2 left-2 flex gap-2">
-              <Badge 
+              <Badge
                 variant="outline"
                 className={cn(
                   "bg-background/80 backdrop-blur-sm",
@@ -200,7 +210,7 @@ export function VideoMonitor({ onAttentionScoreChange, onVideoStatusChange }: Vi
           {/* Attention Score */}
           {isVideoActive && (
             <div className="absolute top-2 right-2">
-              <Badge 
+              <Badge
                 variant="outline"
                 className={cn(
                   "bg-background/80 backdrop-blur-sm border-current",
@@ -225,7 +235,7 @@ export function VideoMonitor({ onAttentionScoreChange, onVideoStatusChange }: Vi
                 {attentionScore}%
               </span>
             </div>
-            
+
             <div className="w-full bg-secondary rounded-full h-2">
               <div
                 className={cn(
