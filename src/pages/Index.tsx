@@ -84,7 +84,7 @@ const Index = () => {
                 <Shield className="h-6 w-6 text-primary" />
               </div>
               <div>
-                <h1 className="text-xl font-bold text-foreground">ExamGuard Pro</h1>
+                <h1 className="text-xl font-bold text-foreground">Watch-fair-AI</h1>
                 <p className="text-sm text-muted-foreground">AI-Powered Exam Proctoring System</p>
               </div>
             </div>
